@@ -12,11 +12,11 @@ def api(station):
     vertrekXML = xmltodict.parse(response.text)
     return vertrekXML
 
-
 def geenvertraging(vertrek):
-    """deze functie is de output als er geen vertraging is"""
+    """deze functie is de output als er geen vertraging is bij de trein"""
+    """deze global is om de gewenste aankomstlocatie te gebruiken in de beschikbare treinen"""
     global aankomstlocatie
-    if 'RouteTekst' in vertrek:
+    if 'RouteTekst' in vertrek:  # vind tussen stops als die in de API bij de reis erbij staan
         bestemmingen = vertrek['RouteTekst']
         bestemmingen.replace(" ", "")
         for bestemming in bestemmingen.split(','):
@@ -24,25 +24,26 @@ def geenvertraging(vertrek):
                 gebruikers_bestemming = bestemming
 
     """vertrekvertragingtekst is er om vertraging te vinden als het bij een reis staat"""
-    if 'VertrekVertragingTekst' in vertrek:
+    if 'VertrekVertragingTekst' in vertrek: #vindt vertraging als dit bij een trein staat vermeld
         vertragings = vertrek['VertrekVertragingTekst']
 
     """hier gebruiken wij de orderdicts om vertrektijd, eindbestemming, treinsoort etc. op te halen"""
-    eindbestemming = vertrek['EindBestemming']
+    eindbestemming = vertrek['EindBestemming'] #eindbestemming van de trein
     vertrektijd = vertrek['VertrekTijd']  # 2016-09-27T18:36:00+0200
     vertrektijd = vertrektijd[11:16]  # 18:36
-    vertrekspoor = vertrek['VertrekSpoor']
-    treintype = vertrek['TreinSoort']
+    vertrekspoor = vertrek['VertrekSpoor'] #vanaf welk spoor vertrekt de trein
+    treintype = vertrek['TreinSoort'] # wat voor type trein is het (denk aan intercity, ICE international etc.)
     if 'RouteTekst' in vertrek:
-        if str(aankomstlocatie.get()).title() in bestemmingen:
+        if str(aankomstlocatie.get()).title() in bestemmingen: # pakt de aankomst locatie, vervangt de eerste letter met een hoofdletter omdat dit in de API zo gespelled is
             Reistekst["text"] += '{0}'.format('Om {0} vertrekt er een {1} naar {2} vanaf spoor {3}\n'.format(vertrektijd, treintype, gebruikers_bestemming, vertrekspoor[('#text')]))
     if str(aankomstlocatie.get()).title() in eindbestemming:
         Reistekst["text"] += '{0}'.format('Om {0} vertrekt er een {1} naar {2} vanaf spoor {3}\n'.format(vertrektijd, treintype, eindbestemming,vertrekspoor[('#text')]))
     return Reistekst
 
 def vertraging(vertrek):
+    """deze functie is de output als er vertraging bij de trein"""
     global aankomstlocatie
-    """deze functie is de output als er wel een trein is met vertraging"""
+    """hier wordt routetekst gebruikt om te kijken of de gebruikers aankomst locatie in 1 van de tussenstops staat"""
     if 'RouteTekst' in vertrek:
         bestemmingen = vertrek['RouteTekst']
         bestemmingen.replace(" ", "")
@@ -55,11 +56,11 @@ def vertraging(vertrek):
         vertragings = vertrek['VertrekVertragingTekst']
 
     """hier gebruiken wij de orderdicts om vertrektijd, eindbestemming, treinsoort etc. op te halen"""
-    eindbestemming = vertrek['EindBestemming']
+    eindbestemming = vertrek['EindBestemming'] #eindbestemming van de trein
     vertrektijd = vertrek['VertrekTijd']  # 2016-09-27T18:36:00+0200
     vertrektijd = vertrektijd[11:16]  # 18:36
-    vertrekspoor = vertrek['VertrekSpoor']
-    treintype = vertrek['TreinSoort']
+    vertrekspoor = vertrek['VertrekSpoor'] #vanaf welk spoor vertrekt de trein
+    treintype = vertrek['TreinSoort'] # wat voor type trein is het (denk aan intercity, ICE international etc.)
     if 'RouteTekst' in vertrek:
         if str(aankomstlocatie.get()).title() in bestemmingen:
             Reistekst["text"] += '{0}'.format('Om {0} ({1}) vertrekt er een {2} naar {3} vanaf spoor {4}\n'.format(vertrektijd, vertragings,treintype, gebruikers_bestemming,vertrekspoor[('#text')]))
@@ -68,11 +69,11 @@ def vertraging(vertrek):
 
 
 def station():
+    """de 2 globlals zijn de gebruiker entry's die in de interface worden opgegeven"""
     global aankomstlocatie
     global vertreklocatiek
     Reistekst['text'] = ''
     """dit laat alles tikken, deze functie wordt aangeroepen door het klikken op de "plannen" knop in de interface"""
-    gebruikers_bestemming = ''
 
     vertrekXML = api(vertreklocatie.get())
     for vertrek in vertrekXML['ActueleVertrekTijden']['VertrekkendeTrein']:
